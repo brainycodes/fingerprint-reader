@@ -1,199 +1,151 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fingerprint Web App</title>
+    
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="src/css/bootstrap.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="src/css/custom.css">
-
-    <title>FingerPrint Web App</title>
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .modal-header {
+            background-color: #007bff;
+            color: white;
+        }
+        .modal-footer {
+            background-color: #f1f1f1;
+        }
+        .btn-primary, .btn-secondary {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+        }
+        .icon {
+            font-size: 32px;
+            color: #6c757d;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-
 <body>
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="src/js/jquery-3.5.0.min.js"></script>
-    <script src="src/js/bootstrap.bundle.js"></script>
-    <script src="src/js/es6-shim.js"></script>
-    <script src="src/js/websdk.client.bundle.min.js"></script>
-    <script src="src/js/fingerprint.sdk.min.js"></script>
+    <div class="container text-center">
+        <h2 class="mb-4 text-primary">Fingerprint Authentication</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-5 mb-3">
+                <div class="card">
+                    <h5 class="card-title">Create Enrollment</h5>
+                    <p class="card-text">Register a new user by capturing their fingerprint data. This process securely stores the fingerprint for future authentication.</p>
+                    <button id="createEnrollmentButton" class="btn btn-primary w-100 shadow" data-bs-toggle="modal" data-bs-target="#createEnrollment" onclick="beginEnrollment()">
+                        <i class="fas fa-user-plus me-2"></i> Create Enrollment
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-5 mb-3">
+                <div class="card">
+                    <h5 class="card-title">Verify Identity</h5>
+                    <p class="card-text">Authenticate an existing user by matching their fingerprint with stored records, ensuring secure and quick access.</p>
+                    <button id="verifyIdentityButton" class="btn btn-secondary w-100 shadow" data-bs-toggle="modal" data-bs-target="#verifyIdentity" onclick="beginIdentification()">
+                        <i class="fas fa-fingerprint me-2"></i> Verify Identity
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Create Enrollment Modal -->
+    <div class="modal fade" id="createEnrollment" tabindex="-1" aria-labelledby="createEnrollmentTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="createEnrollmentTitle">Create Enrollment</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="return false">
+                        <div class="mb-3">
+                            <label for="enrollReaderSelect" class="form-label">Choose Fingerprint Reader</label>
+                            <select id="enrollReaderSelect" class="form-select">
+                                <option selected>Select Fingerprint Reader</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userID" class="form-label">Specify UserID</label>
+                            <input id="userID" type="text" class="form-control" required>
+                        </div>
+                        <div class="text-center mb-3">
+                            <p>Capture Index Finger</p>
+                            <div class="d-flex justify-content-center gap-2">
+                                <i class="fas fa-hand-point-up icon"></i>
+                                <i class="fas fa-hand-point-up icon"></i>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-outline-warning" onclick="clearCapture()">Clear</button>
+                            <button class="btn btn-success" onclick="beginCapture()">Start Capture</button>
+                            <button class="btn btn-primary" onclick="serverEnroll()">Enroll</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verify Identity Modal -->
+    <div class="modal fade" id="verifyIdentity" tabindex="-1" aria-labelledby="verifyIdentityTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="verifyIdentityTitle">Identity Verification</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="return false">
+                        <div class="mb-3">
+                            <label for="verifyReaderSelect" class="form-label">Choose Fingerprint Reader</label>
+                            <select id="verifyReaderSelect" class="form-select">
+                                <option selected>Select Fingerprint Reader</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userIDVerify" class="form-label">Specify UserID</label>
+                            <input id="userIDVerify" type="text" class="form-control" required>
+                        </div>
+                        <div class="text-center mb-3">
+                            <p>Capture Verification Finger</p>
+                            <i class="fas fa-hand-point-up icon"></i>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-outline-warning" onclick="clearCapture()">Clear</button>
+                            <button class="btn btn-success" onclick="captureForIdentify()">Start Capture</button>
+                            <button class="btn btn-primary" onclick="serverIdentify()">Identify</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="src/js/custom.js"></script>
-
-    <div class="container">
-        <div id="controls" class="row justify-content-center mx-5 mx-sm-0 mx-lg-5">
-            <div class="col-sm mb-2 ml-sm-5">
-                <button id="createEnrollmentButton" type="button" class="btn btn-primary btn-block" data-toggle="modal" data-target="#createEnrollment" onclick="beginEnrollment()">Create Enrollment</button>
-            </div>
-            <div class="col-sm mb-2 mr-sm-5">
-                <button id="verifyIdentityButton" type="button" class="btn btn-primary btn-block" data-toggle="modal" data-target="#verifyIdentity" onclick="beginIdentification()">Verify Identity</button>
-            </div>
-        </div>
-    </div>
 </body>
-
-<section>
-    <!--Create Enrolment Section-->
-    <div class="modal fade" id="createEnrollment" data-backdrop="static" tabindex="-1" aria-labelledby="createEnrollmentTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title my-text my-pri-color" id="createEnrollmentTitle">Create Enrollment</h3>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="clearCapture()">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form action="#" onsubmit="return false">
-                        <div id="enrollmentStatusField" class="text-center">
-                            <!--Enrollment Status will be displayed Here-->
-                        </div>
-                        <div class="form-row mt-3">
-                            <div class="col mb-3 mb-md-0 text-center">
-                                <label for="enrollReaderSelect" class="my-text7 my-pri-color">Choose Fingerprint Reader</label>
-                                <select name="readerSelect" id="enrollReaderSelect" class="form-control" onclick="beginEnrollment()">
-                                    <option selected>Select Fingerprint Reader</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row mt-2">
-                            <div class="col mb-3 mb-md-0 text-center">
-                                <label for="userID" class="my-text7 my-pri-color">Specify UserID</label>
-                                <input id="userID" type="text" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="form-row mt-1">
-                            <div class="col text-center">
-                                <p class="my-text7 my-pri-color mt-3">Capture Index Finger</p>
-                            </div>
-                        </div>
-                        <div id="indexFingers" class="form-row justify-content-center">
-                            <div id="indexfinger1" class="col mb-3 mb-md-0 text-center">
-                                <span class="icon icon-indexfinger-not-enrolled" title="not_enrolled"></span>
-                            </div>
-                            <div id="indexfinger2" class="col mb-3 mb-md-0 text-center">
-                                <span class="icon icon-indexfinger-not-enrolled" title="not_enrolled"></span>
-                            </div>
-                            <div id="indexfinger3" class="col mb-3 mb-md-0 text-center">
-                                <span class="icon icon-indexfinger-not-enrolled" title="not_enrolled"></span>
-                            </div>
-                            <div id="indexfinger4" class="col mb-3 mb-md-0 text-center">
-                                <span class="icon icon-indexfinger-not-enrolled" title="not_enrolled"></span>
-                            </div>
-                        </div>
-                        <div class="form-row mt-1">
-                            <div class="col text-center">
-                                <p class="my-text7 my-pri-color mt-5">Capture Middle Finger</p>
-                            </div>
-                        </div>
-                        <div id="middleFingers" class="form-row justify-content-center">
-                            <div id="middleFinger1" class="col mb-3 mb-md-0 text-center">
-                                <span class="icon icon-middlefinger-not-enrolled" title="not_enrolled"></span>
-                            </div>
-                            <div id="middleFinger2" class="col mb-3 mb-md-0 text-center">
-                                <span class="icon icon-middlefinger-not-enrolled" title="not_enrolled"></span>
-                            </div>
-                            <div id="middleFinger3" class="col mb-3 mb-md-0 text-center">
-                                <span class="icon icon-middlefinger-not-enrolled" title="not_enrolled"></span>
-                            </div>
-                            <div id="middleFinger4" class="col mb-3 mb-md-0 text-center" value="true">
-                                <span class="icon icon-middlefinger-not-enrolled" title="not_enrolled"></span>
-                            </div>
-                        </div>
-                        <div class="form-row m-3 mt-md-5 justify-content-center">
-                            <div class="col-4">
-                                <button class="btn btn-primary btn-block my-sec-bg my-text-button py-1" type="submit" onclick="beginCapture()">Start Capture</button>
-                            </div>
-                            <div class="col-4">
-                                <button class="btn btn-primary btn-block my-sec-bg my-text-button py-1" type="submit" onclick="serverEnroll()">Enroll</button>
-                            </div>
-                            <div class="col-4">
-                                <button class="btn btn-secondary btn-outline-warning btn-block my-text-button py-1 border-0" type="button" onclick="clearCapture()">Clear</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <div class="form-row">
-                        <div class="col">
-                            <button class="btn btn-secondary my-text8 btn-outline-danger border-0" type="button" data-dismiss="modal" onclick="clearCapture()">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section>
-    <!--Verify Identity Section-->
-    <div id="verifyIdentity" class="modal fade" data-backdrop="static" tabindex="-1" aria-labelledby="verifyIdentityTitle" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="modal-title my-text my-pri-color" id="verifyIdentityTitle">Identity Verification</h3>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="clearCapture()">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form action="#" onsubmit="return false">
-                        <div id="verifyIdentityStatusField" class="text-center">
-                            <!--verifyIdentity Status will be displayed Here-->
-                        </div>
-                        <div class="form-row mt-3">
-                            <div class="col mb-3 mb-md-0 text-center">
-                                <label for="verifyReaderSelect" class="my-text7 my-pri-color">Choose Fingerprint Reader</label>
-                                <select name="readerSelect" id="verifyReaderSelect" class="form-control" onclick="beginIdentification()">
-                                    <option selected>Select Fingerprint Reader</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row mt-4">
-                            <div class="col mb-md-0 text-center">
-                                <label for="userIDVerify" class="my-text7 my-pri-color m-0">Specify UserID</label>
-                                <input type="text" id="userIDVerify" class="form-control mt-1" required>
-                            </div>
-                        </div>
-                        <div class="form-row mt-3">
-                            <div class="col text-center">
-                                <p class="my-text7 my-pri-color mt-1">Capture Verification Finger</p>
-                            </div>
-                        </div>
-                        <div id="verificationFingers" class="form-row justify-content-center">
-                            <div id="verificationFinger" class="col mb-md-0 text-center">
-                                <span class="icon icon-indexfinger-not-enrolled" title="not_enrolled"></span>
-                            </div>
-                        </div>
-                        <div class="form-row mt-3" id="userDetails">
-                            <!--this is where user details will be displayed-->
-                        </div>
-                        <div class="form-row m-3 mt-md-5 justify-content-center">
-                            <div class="col-4">
-                                <button class="btn btn-primary btn-block my-sec-bg my-text-button py-1" type="submit" onclick="captureForIdentify()">Start Capture</button>
-                            </div>
-                            <div class="col-4">
-                                <button class="btn btn-primary btn-block my-sec-bg my-text-button py-1" type="submit" onclick="serverIdentify()">Identify</button>
-                            </div>
-                            <div class="col-4">
-                                <button class="btn btn-secondary btn-outline-warning btn-block my-text-button py-1 border-0" type="button" onclick="clearCapture()">Clear</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <div class="form-row">
-                        <div class="col">
-                            <button class="btn btn-secondary my-text8 btn-outline-danger border-0" type="button" data-dismiss="modal" onclick="clearCapture()">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
 </html>
+
+
+
+<script src="src/js/es6-shim.js"></script>
+<script src="src/js/fingerprint.sdk.min.js"></script>
+<script src="src/js/websdk.client.bundle.min.js"></script>
