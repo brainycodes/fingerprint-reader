@@ -1,6 +1,3 @@
-/*create fingerprint database*/
-CREATE DATABASE fingerprint;
-
 /*create users table, with id as primary key
 username, fullname columns and also nullable index and middle finger columns*/
 CREATE TABLE `users` (
